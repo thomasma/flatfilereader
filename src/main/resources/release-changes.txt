@@ -1,0 +1,8 @@
+
+Release 0.6
+===========
+- No code changes were made.
+- Set up the Maven build to produce an assembly containing library jar file, source code and api documentation.
+- Included the Apache 2.0 licensing information into distribution and also in the library jar file
+
+
