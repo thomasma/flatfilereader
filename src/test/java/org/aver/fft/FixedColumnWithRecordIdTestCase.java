@@ -20,7 +20,7 @@ public class FixedColumnWithRecordIdTestCase extends TestCase {
 		System.out.println(cardDetails.getTransactionDate());
 		System.out.println(cardDetails.getAmount());
 
-		assertTrue("Mathew Thomas".equals(cardDetails.getNameOnCard()));
+		assertTrue("Mathew_Thomas".equals(cardDetails.getNameOnCard()));
 
 	}
 

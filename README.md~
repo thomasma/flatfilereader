@@ -136,4 +136,5 @@ Now I will show you the SAX-like parsing approach. No changes to the annotations
 
 In the RecordListener you must decide whether or not you want to contine or stop the parsing by return true or false respectively pass.
 
+Its important that you either let the parser parse the entire file or return a false to indicate you want to stop parsing. This allows the parser to close the handle to the file stream.
 

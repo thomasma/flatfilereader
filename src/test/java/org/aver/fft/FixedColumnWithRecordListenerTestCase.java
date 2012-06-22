@@ -41,9 +41,9 @@ public class FixedColumnWithRecordListenerTestCase extends TestCase {
 			// there are 2 records in the file and the assertions check for data
 			// in each
 			if (recCount == 1) {
-				assertTrue("Matttt Thomas".equals(bean.getNameOnCard()));
+				assertTrue("Matttt_Thomas".equals(bean.getNameOnCard()));
 			} else {
-				assertTrue("Maaaaa Thomas".equals(bean.getNameOnCard()));
+				assertTrue("Maaaaa_Thomas".equals(bean.getNameOnCard()));
 			}
 			return true;
 		}
@@ -60,11 +60,8 @@ public class FixedColumnWithRecordListenerTestCase extends TestCase {
 			recCount++;
 			FixedColBean bean = (FixedColBean) o;
 			System.out.println(bean.getNameOnCard());
-			// there are 2 records in the file and the assertions check for
-			// data
-			// in each
-
-			assertTrue("Matttt Thomas".equals(bean.getNameOnCard()));
+			// there are 2 records in the file and the assertions check for data in each
+			assertTrue("Matttt_Thomas".equals(bean.getNameOnCard()));
 			return false;
 		}
 

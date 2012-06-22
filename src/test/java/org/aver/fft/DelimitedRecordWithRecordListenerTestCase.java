@@ -41,9 +41,9 @@ public class DelimitedRecordWithRecordListenerTestCase extends TestCase {
 			// there are 2 records in the file and the assertions check for data
 			// in each
 			if (recCount == 1) {
-				assertTrue("Mathew Thomas".equals(bean.getNameOnCard()));
+				assertTrue("Mathew_Thomas".equals(bean.getNameOnCard()));
 			} else {
-				assertTrue("fname lname".equals(bean.getNameOnCard()));
+				assertTrue("fname_lname".equals(bean.getNameOnCard()));
 			}
 			return true;
 		}
@@ -60,11 +60,9 @@ public class DelimitedRecordWithRecordListenerTestCase extends TestCase {
 			recCount++;
 			DelimitedBean bean = (DelimitedBean) o;
 			System.out.println(bean.getNameOnCard());
-			// there are 2 records in the file and the assertions check for
-			// data
+			// there are 2 records in the file and the assertions check for data
 			// in each
-
-			assertTrue("Mathew Thomas".equals(bean.getNameOnCard()));
+			assertTrue("Mathew_Thomas".equals(bean.getNameOnCard()));
 			return false;
 		}
 

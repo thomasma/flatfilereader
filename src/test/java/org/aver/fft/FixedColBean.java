@@ -11,7 +11,7 @@ import org.aver.fft.annotations.Transform;
  * @author Mathew Thomas
  */
 
-@Transform(spaceEscapeCharacter = "_", columnSeparatorType = Transformer.ColumnSeparator.FIXLENGTH, recordIdStartColumn = 1, recordIdEndColumn = 2)
+@Transform(columnSeparatorType = Transformer.ColumnSeparator.FIXLENGTH)
 public class FixedColBean {
 	private String nameOnCard;
 

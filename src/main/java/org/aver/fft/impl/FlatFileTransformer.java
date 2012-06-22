@@ -81,17 +81,6 @@ public final class FlatFileTransformer implements Transformer {
 	/** Bean class name to {@link Record} instance. */
 	private Map<String, Record> recordMap = new HashMap<String, Record>();
 
-	/**
-	 * Character that represents a space in column data. Used when space is the
-	 * delimiter for fields.
-	 */
-	private String spaceEscape;
-
-	// following are relevant if columnSeparatorType = fixed length
-	private int idStartColumn = 1;
-
-	private int idEndColumn = 1;
-
 	private boolean skipFirstLine;
 
 	private Class<Transform> clazz;
@@ -123,9 +112,6 @@ public final class FlatFileTransformer implements Transformer {
 		setBeanCreator(classAnnotation.beanCreator());
 		setColumnSeparator(classAnnotation.columnSeparator());
 		setColumnSeparatorType(classAnnotation.columnSeparatorType());
-		setSpaceEscape(classAnnotation.spaceEscapeCharacter());
-		setIdStartColumn(classAnnotation.recordIdStartColumn());
-		setIdEndColumn(classAnnotation.recordIdEndColumn());
 		setSkipFirstLine(classAnnotation.skipFirstLine());
 
 		// parse column mappings for this record
@@ -180,10 +166,6 @@ public final class FlatFileTransformer implements Transformer {
 				}
 			} else {
 				String coldata = (String) tokens.get(col.getIndex());
-				if (col.getType().equals(String.class.getName())
-						&& !StringUtils.isEmpty(spaceEscape)) {
-					coldata = coldata.replaceAll(spaceEscape, " ");
-				}
 				map.put(col.getName(), coldata);
 			}
 		}
@@ -308,26 +290,6 @@ public final class FlatFileTransformer implements Transformer {
 		this.columnSeparatorType = columnSeparatorType;
 	}
 
-	public int getIdEndColumn() {
-		return idEndColumn;
-	}
-
-	public int getIdStartColumn() {
-		return idStartColumn;
-	}
-
-	public void setIdStartColumn(String start) {
-		try {
-			this.idStartColumn = Integer.parseInt(start);
-		} catch (Exception e) {
-			idStartColumn = 0;
-		}
-	}
-
-	public void setSpacesInDataEscape(String value) {
-		this.spaceEscape = value;
-	}
-
 	public void setBeanCreator(BeanFactory beanCreator) {
 		this.beanCreator = beanCreator;
 	}
@@ -336,24 +298,8 @@ public final class FlatFileTransformer implements Transformer {
 		return idColumnIndex;
 	}
 
-	public String getSpaceEscape() {
-		return spaceEscape;
-	}
-
-	public void setSpaceEscape(String spaceEscape) {
-		this.spaceEscape = spaceEscape;
-	}
-
 	public BeanFactory getBeanCreator() {
 		return beanCreator;
-	}
-
-	public void setIdEndColumn(int idEndColumn) {
-		this.idEndColumn = idEndColumn;
-	}
-
-	public void setIdStartColumn(int idStartColumn) {
-		this.idStartColumn = idStartColumn;
 	}
 
 	public String getColumnSeparator() {

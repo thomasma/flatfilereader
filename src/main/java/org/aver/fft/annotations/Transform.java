@@ -16,12 +16,5 @@ public @interface Transform {
 
 	String beanCreator() default "org.aver.fft.DefaultBeanCreator";
 
-	String spaceEscapeCharacter() default "";
-
-	int recordIdStartColumn() default 1;
-
-	int recordIdEndColumn() default 1;
-	
 	boolean skipFirstLine() default false;
-
 }

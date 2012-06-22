@@ -11,7 +11,7 @@ import org.aver.fft.annotations.Transform;
  * 
  * @author Mathew Thomas
  */
-@Transform(spaceEscapeCharacter = "_", columnSeparator = ";")
+@Transform(columnSeparator = ";")
 public class CommaDelimitedBean {
 	private String nameOnCard;
 

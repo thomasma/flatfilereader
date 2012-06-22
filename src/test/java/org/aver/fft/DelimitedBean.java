@@ -11,7 +11,7 @@ import org.aver.fft.annotations.Transform;
  * 
  * @author Mathew Thomas
  */
-@Transform(spaceEscapeCharacter = "_")
+@Transform
 public class DelimitedBean {
 	private String nameOnCard;
 

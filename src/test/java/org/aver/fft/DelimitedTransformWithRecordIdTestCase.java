@@ -21,16 +21,16 @@ public class DelimitedTransformWithRecordIdTestCase extends TestCase {
 		System.out.println(cardDetails.getAmount());
 		assertTrue(cardDetails.getAmount() == 12.89);
 	}
-
-	public void testWithMultipleSpacesAsDelimiter() {
-		String line = "Mathew_Thomas     4111111111111111  02   2008   12.89  222     10212005";
-		DelimitedBean cardDetails = (DelimitedBean) spec.loadRecord(line);
-		System.out.println(cardDetails.getNameOnCard());
-		System.out.println(cardDetails.getCardNumber());
-		System.out.println(cardDetails.getTransactionDate());
-		System.out.println(cardDetails.getAmount());
-		assertTrue(cardDetails.getAmount() == 12.89);
-	}
+//
+//	public void testWithMultipleSpacesAsDelimiter() {
+//		String line = "Mathew_Thomas     4111111111111111  02   2008   12.89  222     10212005";
+//		DelimitedBean cardDetails = (DelimitedBean) spec.loadRecord(line);
+//		System.out.println(cardDetails.getNameOnCard());
+//		System.out.println(cardDetails.getCardNumber());
+//		System.out.println(cardDetails.getTransactionDate());
+//		System.out.println(cardDetails.getAmount());
+//		assertTrue(cardDetails.getAmount() == 12.89);
+//	}
 
 	public void testWithOneSemiColonAsDelimiter() {
 		String line = "Mathew_Thomas;4111111111111111;02;2008;12.89;222;10212005";
@@ -42,17 +42,17 @@ public class DelimitedTransformWithRecordIdTestCase extends TestCase {
 		System.out.println(cardDetails.getAmount());
 		assertTrue(cardDetails.getAmount() == 12.89);
 	}
-
-	public void testWithMultipleSemiColonAsDelimiter() {
-		String line = ";;;Mathew_Thomas;;;;4111111111111111;;02;;;2008;;;12.89;;;222;;;10212005";
-		CommaDelimitedBean cardDetails = (CommaDelimitedBean) commaspec
-				.loadRecord(line);
-		System.out.println(cardDetails.getNameOnCard());
-		System.out.println(cardDetails.getCardNumber());
-		System.out.println(cardDetails.getTransactionDate());
-		System.out.println(cardDetails.getAmount());
-		assertTrue(cardDetails.getAmount() == 12.89);
-	}
+//
+//	public void testWithMultipleSemiColonAsDelimiter() {
+//		String line = ";;;Mathew_Thomas;;;;4111111111111111;;02;;;2008;;;12.89;;;222;;;10212005";
+//		CommaDelimitedBean cardDetails = (CommaDelimitedBean) commaspec
+//				.loadRecord(line);
+//		System.out.println(cardDetails.getNameOnCard());
+//		System.out.println(cardDetails.getCardNumber());
+//		System.out.println(cardDetails.getTransactionDate());
+//		System.out.println(cardDetails.getAmount());
+//		assertTrue(cardDetails.getAmount() == 12.89);
+//	}
 
 	public void testInvalidNumberOfColumns() {
 		// expecting 2 cols
