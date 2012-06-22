@@ -16,10 +16,10 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-
 	<scm>
-		<url>http://javaforge.com/svn/fft</url>
-		<connection>http://javaforge.com/svn/fft</connection>
+		<connection>scm:git:git://github.com/thomasma/flatfilereader.git</connection>
+		<developerConnection>scm:git:git@github.com:thomasma/flatfilereader.git</developerConnection>
+		<url>https://github.com/thomasma/flatfilereader</url>
 	</scm>
 
 	<dependencies>
@@ -102,6 +102,19 @@
 						</descriptor>
 					</descriptors>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
