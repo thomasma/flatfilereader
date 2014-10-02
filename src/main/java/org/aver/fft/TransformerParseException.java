@@ -8,11 +8,11 @@ package org.aver.fft;
  */
 @SuppressWarnings("serial")
 public class TransformerParseException extends TransformerException {
-	public TransformerParseException(Exception ex) {
-		super(ex);
-	}
+    public TransformerParseException(Exception ex) {
+        super(ex);
+    }
 
-	public TransformerParseException(String msg) {
-		super(msg);
-	}
+    public TransformerParseException(String msg) {
+        super(msg);
+    }
 }

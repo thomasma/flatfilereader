@@ -30,36 +30,36 @@ import org.aver.fft.TransformerException;
  * @author Mathew Thomas
  */
 final class Record {
-	private String name;
+    private String name;
 
-	private Map<Integer, Column> columnMap = new HashMap<Integer, Column>();
+    private Map<Integer, Column> columnMap = new HashMap<Integer, Column>();
 
-	public Record(String name) {
-		// sanity checks
-		if (StringUtils.isEmpty(name)) {
-			throw new TransformerException("Record name must be specified");
-		}
+    public Record(String name) {
+        // sanity checks
+        if (StringUtils.isEmpty(name)) {
+            throw new TransformerException("Record name must be specified");
+        }
 
-		// copy parameters
-		this.name = name;
-	}
+        // copy parameters
+        this.name = name;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	void addColumn(Column col) {
-		columnMap.put(col.getIndex() - 1, col);
-	}
+    void addColumn(Column col) {
+        columnMap.put(col.getIndex() - 1, col);
+    }
 
-	public Integer[] indexes() {
-		Integer[] keyWeights = (Integer[]) columnMap.keySet().toArray(
-				new Integer[columnMap.size()]);
-		Arrays.sort(keyWeights);
-		return keyWeights;
-	}
+    public Integer[] indexes() {
+        Integer[] keyWeights = (Integer[]) columnMap.keySet().toArray(
+                new Integer[columnMap.size()]);
+        Arrays.sort(keyWeights);
+        return keyWeights;
+    }
 
-	public Column getColumnAt(int index) {
-		return columnMap.get(index);
-	}
+    public Column getColumnAt(int index) {
+        return columnMap.get(index);
+    }
 }

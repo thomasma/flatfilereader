@@ -31,5 +31,5 @@ package org.aver.fft;
  * @see DefaultBeanCreator
  */
 public interface BeanFactory {
-	Object createBean(String className);
+    Object createBean(String className);
 }

@@ -26,15 +26,22 @@ import org.aver.fft.impl.FlatFileTransformer;
  * @author Mathew Thomas
  */
 public class TransformerFactory {
-	/**
-	 * Returns an initialized <code>Transformer</code> instance.
-	 * 
-	 * @param classes
-	 *            array with classes annotated with
-	 * @Transfor annotation
-	 * @return transformer instance
-	 */
-	public static Transformer getTransformer(Class clazz) {
-		return new FlatFileTransformer(clazz);
-	}
+    /**
+     * Private constructor to force usage via the factory method.
+     */
+    private TransformerFactory() {
+        // no implementation
+    }
+
+    /**
+     * Returns an initialized <code>Transformer</code> instance.
+     * 
+     * @param classes
+     *            array with classes annotated with
+     * @Transfor annotation
+     * @return transformer instance
+     */
+    public static Transformer getTransformer(final Class clazz) {
+        return new FlatFileTransformer(clazz);
+    }
 }

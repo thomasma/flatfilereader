@@ -10,11 +10,11 @@ import org.aver.fft.Transformer;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Transform {
-	Transformer.ColumnSeparator columnSeparatorType() default Transformer.ColumnSeparator.CHARACTER;
+    Transformer.ColumnSeparator columnSeparatorType() default Transformer.ColumnSeparator.CHARACTER;
 
-	String columnSeparator() default " ";
+    String columnSeparator() default " ";
 
-	String beanCreator() default "org.aver.fft.DefaultBeanCreator";
+    String beanCreator() default "org.aver.fft.DefaultBeanCreator";
 
-	boolean skipFirstLine() default false;
+    boolean skipFirstLine() default false;
 }

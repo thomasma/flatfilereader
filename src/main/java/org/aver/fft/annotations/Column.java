@@ -8,15 +8,15 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Column {
-	boolean required() default false;
+    boolean required() default false;
 
-	String format() default "";
+    String format() default "";
 
-	int position();
+    int position();
 
-	boolean skip() default false;
+    boolean skip() default false;
 
-	int start() default 0;
+    int start() default 0;
 
-	int end() default 0;
+    int end() default 0;
 }

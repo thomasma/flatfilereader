@@ -20,9 +20,9 @@ package org.aver.fft.impl;
 import java.util.Iterator;
 
 interface TokenIterator extends Iterator<String> {
-	public int getInt();
+    public int getInt();
 
-	public long getLong();
+    public long getLong();
 
-	public String getString();
+    public String getString();
 }

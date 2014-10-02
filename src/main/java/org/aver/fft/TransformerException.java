@@ -25,12 +25,12 @@ package org.aver.fft;
  */
 @SuppressWarnings("serial")
 public class TransformerException extends RuntimeException {
-	public TransformerException(String msg) {
-		super(msg);
-	}
+    public TransformerException(String msg) {
+        super(msg);
+    }
 
-	public TransformerException(Exception ex) {
-		super(ex);
-	}
+    public TransformerException(Exception ex) {
+        super(ex);
+    }
 
 }

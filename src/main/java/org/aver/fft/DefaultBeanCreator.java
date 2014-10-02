@@ -24,23 +24,23 @@ package org.aver.fft;
  * @author Mathew Thomas
  */
 public class DefaultBeanCreator implements BeanFactory {
-	/**
-	 * Creates an instance of the destination bean using its default
-	 * constructor.
-	 * 
-	 * @param name
-	 *            of the destination bean
-	 */
-	public Object createBean(String className) {
-		try {
-			return Class.forName(className).newInstance();
-		} catch (InstantiationException e) {
-			throw new TransformerException(e);
-		} catch (IllegalAccessException e) {
-			throw new TransformerException(e);
-		} catch (ClassNotFoundException e) {
-			throw new TransformerException(e);
-		}
-	}
+    /**
+     * Creates an instance of the destination bean using its default
+     * constructor.
+     * 
+     * @param name
+     *            of the destination bean
+     */
+    public Object createBean(String className) {
+        try {
+            return Class.forName(className).newInstance();
+        } catch (InstantiationException e) {
+            throw new TransformerException(e);
+        } catch (IllegalAccessException e) {
+            throw new TransformerException(e);
+        } catch (ClassNotFoundException e) {
+            throw new TransformerException(e);
+        }
+    }
 
 }
