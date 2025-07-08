@@ -17,11 +17,10 @@
 
 package org.aver.fft.impl;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.aver.fft.TransformerException;
 
 /**
@@ -32,7 +31,7 @@ import org.aver.fft.TransformerException;
 final class Record {
     private String name;
 
-    private Map<Integer, Column> columnMap = new HashMap<Integer, Column>();
+    private Map<Integer, Column> columnMap = new HashMap<>();
 
     public Record(String name) {
         // sanity checks
@@ -53,10 +52,9 @@ final class Record {
     }
 
     public Integer[] indexes() {
-        Integer[] keyWeights = (Integer[]) columnMap.keySet().toArray(
-                new Integer[columnMap.size()]);
-        Arrays.sort(keyWeights);
-        return keyWeights;
+        return columnMap.keySet().stream()
+                .sorted()
+                .toArray(Integer[]::new);
     }
 
     public Column getColumnAt(int index) {

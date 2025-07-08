@@ -1,6 +1,8 @@
 package org.aver.fft.contributions;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.aver.fft.RecordListener;
 import org.aver.fft.Transformer;
@@ -11,16 +13,16 @@ import org.aver.fft.TransformerFactory;
  * 
  * @author Mathew Thomas
  */
-public class ContributionsTestCase extends TestCase {
+public class ContributionsTestCase {
     static int recCount = 0;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    void setUp() {
         recCount = 0;
     }
 
-    public void testRestFirstRecordOnly() {
+    @Test
+    void testRestFirstRecordOnly() {
         Transformer spec = TransformerFactory
                 .getTransformer(Contribution.class);
         spec.parseFlatFile(
@@ -29,29 +31,37 @@ public class ContributionsTestCase extends TestCase {
                     public boolean foundRecord(Object o) {
                         recCount++;
                         Contribution bean = (Contribution) o;
-                        System.out.println(recCount + "=>" + bean.toString());
-                        assertTrue("C00410118".equals(bean.getCmteId()));
-                        assertTrue("P20002978".equals(bean.getCandId()));
-                        assertTrue("AL".equals(bean.getContbrSt()));
-                        assertTrue("366010290".equals(bean.getContbrZip()));
-                        assertTrue("SA17A".equals(bean.getFormTp()));
-                        assertTrue("736166".equals(bean.getFileNum()));
-                        assertTrue(250 == bean.getContbReceiptAmt());
+                        
+                        // Verify first record data
+                        assertEquals("C00410118", bean.getCmteId());
+                        assertEquals("P20002978", bean.getCandId());
+                        assertEquals("AL", bean.getContbrSt());
+                        assertEquals("366010290", bean.getContbrZip());
+                        assertEquals("SA17A", bean.getFormTp());
+                        assertEquals("736166", bean.getFileNum());
+                        assertEquals(250.0, bean.getContbReceiptAmt(), 0.01);
+                        
+                        // Additional field validations
+                        assertNotNull(bean.getContbrNm());
+                        assertNotNull(bean.getContbrCity());
+                        assertNotNull(bean.getContbReceiptDt());
 
-                        // abort
+                        // abort after first record
                         return false;
                     }
 
                     public boolean unresolvableRecord(String rec) {
-                        // nothing in here for now
                         fail("Not expecting this call. test not setup for this.");
                         return true;
                     }
                 });
-        // assertions are in the listener class below
+        
+        // Verify that only one record was processed
+        assertEquals(1, recCount, "Should have processed only 1 record before abort");
     }
 
-    public void testReadAllRecords() {
+    @Test
+    void testReadAllRecords() {
         Transformer spec = TransformerFactory
                 .getTransformer(Contribution.class);
         recCount = 0;
@@ -61,19 +71,23 @@ public class ContributionsTestCase extends TestCase {
                     public boolean foundRecord(Object o) {
                         recCount++;
                         Contribution bean = (Contribution) o;
-                        System.out.println(recCount + "=>" + bean.toString());
+                        
+                        // Verify basic field structure for all records
+                        // Some fields might be null/empty in the CSV data, so just check for non-null objects
+                        assertNotNull(bean);
 
-                        // continue
+                        // continue processing
                         return true;
                     }
 
                     public boolean unresolvableRecord(String rec) {
-                        // nothing in here for now
                         fail("Not expecting this call. test not setup for this.");
                         return true;
                     }
                 });
-        assertTrue(recCount == 221);
+        
+        // Verify that all 221 records were processed
+        assertEquals(221, recCount, "Should have processed all 221 records");
     }
 
 }

@@ -31,11 +31,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.aver.fft.BeanFactory;
 import org.aver.fft.DefaultBeanCreator;
 import org.aver.fft.RecordListener;
@@ -51,8 +52,8 @@ import org.aver.fft.annotations.Transform;
  */
 public final class FlatFileTransformer implements Transformer {
     /** Log messages into this. */
-    private static final Log LOGGER = LogFactory
-            .getLog(FlatFileTransformer.class);
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(FlatFileTransformer.class);
 
     /** Default column separator (for delimited columns) */
     private final static String DEFAULT_COLUMN_SEPARATOR_CHARACTER = " ";
@@ -79,18 +80,18 @@ public final class FlatFileTransformer implements Transformer {
     private BeanFactory beanCreator;
 
     /** Bean class name to {@link Record} instance. */
-    private Map<String, Record> recordMap = new HashMap<String, Record>();
+    private final Map<String, Record> recordMap = new HashMap<>();
 
     private boolean skipFirstLine;
 
-    private Class<Transform> clazz;
+    private final Class<Object> clazz;
 
     /**
      * Initialize the transformer.
      * 
-     * @param classes
+     * @param clazz
      */
-    public FlatFileTransformer(final Class<Transform> clazz) {
+    public FlatFileTransformer(final Class<Object> clazz) {
         this.clazz = clazz;
         loadClasses();
     }
@@ -120,6 +121,7 @@ public final class FlatFileTransformer implements Transformer {
     }
 
     /***/
+    @Override
     public void parseFlatFile(final InputStream stream,
             final RecordListener listener) {
         if (stream == null) {
@@ -131,6 +133,7 @@ public final class FlatFileTransformer implements Transformer {
     }
 
     /***/
+    @Override
     public void parseFlatFile(final File file, final RecordListener listener) {
         if (file == null || !file.exists() || !file.canRead()
                 || file.isDirectory()) {
@@ -144,30 +147,39 @@ public final class FlatFileTransformer implements Transformer {
     }
 
     /***/
+    @Override
     public Object loadRecord(final String line) {
         Object dest = beanCreator.createBean(clazz.getName());
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         TokenList tokens = new TokenList(line, this, clazz);
-        Record rec = recordMap.get(clazz.getName());
+        Optional<Record> optionalRec = getRecord(clazz.getName());
+        
+        if (optionalRec.isEmpty()) {
+            throw new TransformerException("No record format found for class: " + clazz.getName());
+        }
+        
+        Record rec = optionalRec.get();
         for (int i : rec.indexes()) {
             Column col = rec.getColumnAt(i);
-            if (col.isSkip()) {
+            if (col.skip()) {
                 continue;
             }
 
-            if (col.getType().equals(Date.class.getName())) {
-                SimpleDateFormat formatter = new SimpleDateFormat(
-                        col.getDateFormat());
-                try {
-                    map.put(col.getName(), formatter.parse((String) tokens
-                            .get(col.getIndex())));
-                } catch (ParseException e) {
-                    throw new TransformerParseException(e);
+            switch (col.type()) {
+                case String dateType when dateType.equals(Date.class.getName()) -> {
+                    SimpleDateFormat formatter = new SimpleDateFormat(col.dateFormat());
+                    try {
+                        map.put(col.name(), formatter.parse((String) tokens
+                                .get(col.getIndex())));
+                    } catch (ParseException e) {
+                        throw new TransformerParseException(e);
+                    }
                 }
-            } else {
-                String coldata = (String) tokens.get(col.getIndex());
-                map.put(col.getName(), coldata);
+                default -> {
+                    String coldata = (String) tokens.get(col.getIndex());
+                    map.put(col.name(), coldata);
+                }
             }
         }
 
@@ -210,9 +222,8 @@ public final class FlatFileTransformer implements Transformer {
                         // index, String format, boolean skip
                         Column col = new Column(colname, m.getReturnType()
                                 .getName(), annot.required(), annot.position(),
-                                annot.format(), annot.skip());
-                        col.setStartColumn(annot.start());
-                        col.setEndColumn(annot.end());
+                                annot.format(), annot.skip())
+                                .withFixedPositions(annot.start(), annot.end());
                         rec.addColumn(col);
                     }
                 }
@@ -234,10 +245,9 @@ public final class FlatFileTransformer implements Transformer {
      */
     private void parse(final BufferedReader reader,
             final RecordListener listener) {
-        if (listener == null) {
-            throw new TransformerException("Expecting non-null instance of "
-                    + RecordListener.class.getName());
-        }
+        Optional.ofNullable(listener)
+                .orElseThrow(() -> new TransformerException("Expecting non-null instance of "
+                        + RecordListener.class.getName()));
 
         try {
             String line = null;
@@ -257,10 +267,10 @@ public final class FlatFileTransformer implements Transformer {
                 }
 
                 // ok read on
-                Object o = loadRecord(line);
-                if (o != null) {
+                try {
+                    Object o = loadRecord(line);
                     continueReading = listener.foundRecord(o);
-                } else {
+                } catch (TransformerException e) {
                     continueReading = listener.unresolvableRecord(line);
                 }
             }
@@ -280,8 +290,8 @@ public final class FlatFileTransformer implements Transformer {
     // ----------------------------------------------------------------------
     // Setters/Getters.
     // ----------------------------------------------------------------------
-    public Record getRecord(final String string) {
-        return (Record) recordMap.get(string);
+    public Optional<Record> getRecord(final String string) {
+        return Optional.ofNullable(recordMap.get(string));
     }
 
     public ColumnSeparator getColumnSeparatorType() {
@@ -344,26 +354,94 @@ public final class FlatFileTransformer implements Transformer {
      * @param value
      */
     public void setBeanCreator(final String beanFactory) {
-        if (StringUtils.isEmpty(beanFactory)) {
-            throw new TransformerException(
-                    "An implementation of the interface "
-                            + BeanFactory.class.getName()
-                            + " must be provided.");
+        Optional.ofNullable(beanFactory)
+                .filter(bf -> !StringUtils.isEmpty(bf))
+                .orElseThrow(() -> new TransformerException("""
+                        An implementation of the interface %s must be provided."""
+                        .formatted(BeanFactory.class.getName())));
+
+        // Security: Validate bean factory class name to prevent RCE attacks
+        if (isBlacklistedBeanFactory(beanFactory)) {
+            throw new TransformerException("Bean factory class not allowed for security reasons: " + beanFactory);
         }
 
         try {
-            final Class beanFactoryClazz = Class.forName(beanFactory);
-            if (!BeanFactory.class.isAssignableFrom(beanFactoryClazz)) {
-                throw new TransformerException(beanFactory
-                        + " does not implement " + BeanFactory.class.getName());
+            final Class<?> beanFactoryClazz = Class.forName(beanFactory);
+            
+            // Security: Ensure class is safe to instantiate
+            if (!isSafeBeanFactory(beanFactoryClazz)) {
+                throw new TransformerException("Bean factory class not allowed for security reasons: " + beanFactory);
             }
-            beanCreator = (BeanFactory) beanFactoryClazz.newInstance();
-        } catch (ClassNotFoundException e) {
-            throw new TransformerException(e);
-        } catch (InstantiationException e) {
-            throw new TransformerException(e);
-        } catch (IllegalAccessException e) {
+            
+            if (!BeanFactory.class.isAssignableFrom(beanFactoryClazz)) {
+                throw new TransformerException("""
+                        %s does not implement %s"""
+                        .formatted(beanFactory, BeanFactory.class.getName()));
+            }
+            beanCreator = (BeanFactory) beanFactoryClazz.getDeclaredConstructor().newInstance();
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | 
+                 NoSuchMethodException | java.lang.reflect.InvocationTargetException e) {
             throw new TransformerException(e);
         }
+    }
+    
+    /**
+     * Security: Check if bean factory class name is blacklisted
+     */
+    private boolean isBlacklistedBeanFactory(String className) {
+        // Block dangerous classes that could be used for RCE
+        String[] blacklistedPrefixes = {
+            "java.lang.Runtime",
+            "java.lang.ProcessBuilder",
+            "java.lang.System",
+            "java.lang.Class",
+            "java.lang.Thread",
+            "java.security.",
+            "java.net.",
+            "java.io.File",
+            "java.io.FileInputStream",
+            "java.io.FileOutputStream",
+            "java.nio.file.",
+            "javax.script.",
+            "sun.",
+            "com.sun.",
+            "jdk.internal.",
+            "org.springframework.context.",
+            "org.apache.commons.beanutils.BeanUtils"
+        };
+        
+        String lowerClassName = className.toLowerCase();
+        for (String prefix : blacklistedPrefixes) {
+            if (lowerClassName.startsWith(prefix.toLowerCase())) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Security: Check if bean factory class is safe to instantiate
+     */
+    private boolean isSafeBeanFactory(Class<?> clazz) {
+        // Additional runtime checks
+        if (clazz.isPrimitive() || clazz.isArray()) {
+            return false;
+        }
+        
+        // Check if class has dangerous interfaces or superclasses
+        try {
+            if (java.lang.Runtime.class.isAssignableFrom(clazz) ||
+                java.lang.ProcessBuilder.class.isAssignableFrom(clazz) ||
+                java.lang.ClassLoader.class.isAssignableFrom(clazz) ||
+                java.lang.Thread.class.isAssignableFrom(clazz)) {
+                return false;
+            }
+        } catch (Exception e) {
+            // If we can't check safely, assume it's dangerous
+            return false;
+        }
+        
+        return true;
     }
 }

@@ -18,109 +18,61 @@
 package org.aver.fft.impl;
 
 import java.beans.Introspector;
+import java.util.Optional;
 
 /**
  * Metadata about specific column.
  * 
  * @author Mathew Thomas
  */
-final class Column {
-    /** name of column */
-    private String name;
-
-    /** data type of column */
-    private String type;
-
-    /** is the column a required one */
-    private boolean required;
-
-    /** name of column */
-    private String dateFormat;
-
-    /** column position in record (starting from 1) */
-    private int index;
-
-    /** should this column be skipped while parsing */
-    private boolean skip;
-
-    /** Start column position for value. Only relevant for fixed column lengths. */
-    private int startColumn;
-
-    /** End column position for value. Only relevant for fixed column lengths. */
-    private int endColumn;
-
+record Column(
+    String name,
+    String type,
+    boolean required,
+    String dateFormat,
+    int index,
+    boolean skip,
+    int startColumn,
+    int endColumn
+) {
+    
     /**
-     * Initializes column.
+     * Initializes column with processed name.
      * 
-     * @param name
-     * @param type
-     * @param required
-     * @param index
-     * @param format
-     * @param skip
+     * @param name column name
+     * @param type data type of column
+     * @param required is the column required
+     * @param index column position in record (starting from 1)
+     * @param dateFormat date format string
+     * @param skip should this column be skipped while parsing
      */
     public Column(String name, String type, boolean required, int index,
-            String format, boolean skip) {
-        setName(name);
-        this.type = type;
-        this.required = required;
-        this.index = index;
-        this.dateFormat = format;
-        this.skip = skip;
+            String dateFormat, boolean skip) {
+        this(processName(name), type, required, dateFormat, index, skip, 0, 0);
     }
-
-    public int getEndColumn() {
-        return endColumn;
+    
+    /**
+     * Creates column with start and end positions for fixed-width columns.
+     */
+    public Column withFixedPositions(int startColumn, int endColumn) {
+        return new Column(name, type, required, dateFormat, index, skip, startColumn, endColumn);
     }
-
-    public void setEndColumn(int end) {
-        endColumn = end;
-    }
-
-    public int getStartColumn() {
-        return startColumn;
-    }
-
-    public void setStartColumn(int start) {
-        startColumn = start;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String nm) {
-        name = nm;
-        if (Character.isUpperCase(name.charAt(0))) {
-            name = Introspector.decapitalize(name);
-        }
-    }
-
-    public boolean isRequired() {
-        return required;
-    }
-
-    public void setRequired(boolean required) {
-        this.required = required;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
+    
+    /**
+     * Returns boxed Integer for compatibility with existing code.
+     */
     public Integer getIndex() {
-        return Integer.valueOf(index);
+        return index;
     }
-
-    public String getDateFormat() {
-        return dateFormat;
-    }
-
-    public boolean isSkip() {
-        return skip;
+    
+    /**
+     * Processes name to ensure proper capitalization.
+     */
+    private static String processName(String name) {
+        return Optional.ofNullable(name)
+                .filter(n -> !n.isEmpty())
+                .filter(n -> Character.isUpperCase(n.charAt(0)))
+                .map(Introspector::decapitalize)
+                .orElse(name);
     }
 }

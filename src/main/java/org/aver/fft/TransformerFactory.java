@@ -36,12 +36,12 @@ public class TransformerFactory {
     /**
      * Returns an initialized <code>Transformer</code> instance.
      * 
-     * @param classes
-     *            array with classes annotated with
-     * @Transfor annotation
+     * @param clazz
+     *            class annotated with @Transform annotation
      * @return transformer instance
      */
-    public static Transformer getTransformer(final Class clazz) {
-        return new FlatFileTransformer(clazz);
+    @SuppressWarnings("unchecked")
+    public static Transformer getTransformer(final Class<?> clazz) {
+        return new FlatFileTransformer((Class<Object>) clazz);
     }
 }

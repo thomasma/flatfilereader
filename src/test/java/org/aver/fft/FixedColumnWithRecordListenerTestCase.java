@@ -1,49 +1,63 @@
 package org.aver.fft;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Fixed length records test case.
  * 
  * @author Mathew Thomas
  */
-public class FixedColumnWithRecordListenerTestCase extends TestCase {
+public class FixedColumnWithRecordListenerTestCase {
     static int recCount = 0;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    void setUp() {
         recCount = 0;
     }
 
-    public void testFixedColumnRead() {
+    @Test
+    void testFixedColumnRead() {
         Transformer spec = TransformerFactory
                 .getTransformer(FixedColBean.class);
         spec.parseFlatFile(FixedColumnWithRecordListenerTestCase.class
                 .getResourceAsStream("multi-record-fixedcol-file.txt"),
                 new Listener());
+        
+        // Verify that both records were processed
+        assertEquals(2, recCount, "Should have processed 2 records");
     }
 
-    public void testAbortMultiRecordFileRead() {
+    @Test
+    void testAbortMultiRecordFileRead() {
         Transformer spec = TransformerFactory
                 .getTransformer(FixedColBean.class);
         spec.parseFlatFile(
                 FixedColumnWithRecordListenerTestCase.class
                         .getResourceAsStream("abortread-multi-record-fixedcol-file.txt"),
                 new AbortListener());
+        
+        // Verify that processing was aborted after first record
+        assertEquals(1, recCount, "Should have processed only 1 record before abort");
     }
 
     class Listener implements RecordListener {
         public boolean foundRecord(Object o) {
             recCount++;
             FixedColBean bean = (FixedColBean) o;
-            System.out.println(bean.getNameOnCard());
-            // there are 2 records in the file and the assertions check for data
-            // in each
+            
+            // Verify record data based on sequence
             if (recCount == 1) {
-                assertTrue("Matttt_Thomas".equals(bean.getNameOnCard()));
-            } else {
-                assertTrue("Maaaaa_Thomas".equals(bean.getNameOnCard()));
+                assertEquals("Matttt_Thomas", bean.getNameOnCard());
+                assertNotNull(bean.getCardNumber());
+                assertNotNull(bean.getTransactionDate());
+                assertTrue(bean.getAmount() > 0);
+            } else if (recCount == 2) {
+                assertEquals("Maaaaa_Thomas", bean.getNameOnCard());
+                assertNotNull(bean.getCardNumber());
+                assertNotNull(bean.getTransactionDate());
+                assertTrue(bean.getAmount() > 0);
             }
             return true;
         }
@@ -59,11 +73,14 @@ public class FixedColumnWithRecordListenerTestCase extends TestCase {
         public boolean foundRecord(Object o) {
             recCount++;
             FixedColBean bean = (FixedColBean) o;
-            System.out.println(bean.getNameOnCard());
-            // there are 2 records in the file and the assertions check for data
-            // in each
-            assertTrue("Matttt_Thomas".equals(bean.getNameOnCard()));
-            return false;
+            
+            // Verify first record data and abort processing
+            assertEquals("Matttt_Thomas", bean.getNameOnCard());
+            assertNotNull(bean.getCardNumber());
+            assertNotNull(bean.getTransactionDate());
+            assertTrue(bean.getAmount() > 0);
+            
+            return false; // Abort processing after first record
         }
 
         public boolean unresolvableRecord(String rec) {

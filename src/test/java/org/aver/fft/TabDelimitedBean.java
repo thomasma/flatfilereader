@@ -6,10 +6,10 @@ import org.aver.fft.annotations.Column;
 import org.aver.fft.annotations.Transform;
 
 /**
- * Bean for semicolon-delimited values testing.
+ * Bean for tab-delimited values testing.
  */
-@Transform(columnSeparator = ";")
-public class CommaDelimitedBean {
+@Transform(columnSeparator = "\t")
+public class TabDelimitedBean {
     private String nameOnCard;
     private int expMonth;
     private int expYear;

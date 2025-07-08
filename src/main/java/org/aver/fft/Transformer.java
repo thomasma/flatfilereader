@@ -36,12 +36,11 @@ public interface Transformer {
     };
 
     /**
-     * Loads the record into an instance of the specified type. In the case that
-     * the record format cannot be located a null is returned.
+     * Loads the record into an instance of the specified type.
      * 
-     * @param line
-     * @throws TransformerException
-     *             if error occurs while parsing the line
+     * @param line the line to parse
+     * @return the parsed object
+     * @throws TransformerException if error occurs while parsing the line
      */
     public Object loadRecord(String line);
 

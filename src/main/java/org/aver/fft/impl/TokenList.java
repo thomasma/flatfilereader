@@ -19,6 +19,7 @@ package org.aver.fft.impl;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Optional;
 
 import org.aver.fft.Transformer;
 import org.aver.fft.TransformerException;
@@ -98,42 +99,99 @@ class TokenList extends LinkedList<String> {
     }
 
     private void parse() {
-        if (Transformer.ColumnSeparator.CHARACTER == transformer
-                .getColumnSeparatorType()) {
-            parseTokens(src, transformer.getColumnSeparator().charAt(0));
-        } else if (Transformer.ColumnSeparator.FIXLENGTH == transformer
-                .getColumnSeparatorType()) {
-            Record rec = (Record) transformer.getRecord(destClazz.getName());
-            for (int i : rec.indexes()) {
-                Column col = (Column) rec.getColumnAt(i);
-                try {
-                    add(src.substring(col.getStartColumn() - 1,
-                            col.getEndColumn()));
-                } catch (IndexOutOfBoundsException ex) {
-                    throw new TransformerParseException(ex);
+        switch (transformer.getColumnSeparatorType()) {
+            case CHARACTER -> parseTokens(src, transformer.getColumnSeparator().charAt(0));
+            case FIXLENGTH -> {
+                Optional<Record> optionalRec = transformer.getRecord(destClazz.getName());
+                if (optionalRec.isEmpty()) {
+                    throw new TransformerException("No record format found for class: " + destClazz.getName());
                 }
-
+                
+                Record rec = optionalRec.get();
+                for (int i : rec.indexes()) {
+                    Column col = rec.getColumnAt(i);
+                    
+                    // Security: Validate column positions to prevent DoS attacks
+                    if (!isValidColumnPosition(col, src.length())) {
+                        throw new TransformerParseException("Invalid column position - startColumn: " + 
+                                col.startColumn() + ", endColumn: " + col.endColumn() + 
+                                ", source length: " + src.length());
+                    }
+                    
+                    try {
+                        add(src.substring(col.startColumn() - 1,
+                                col.endColumn()));
+                    } catch (IndexOutOfBoundsException ex) {
+                        throw new TransformerParseException(ex);
+                    }
+                }
             }
-        } else {
-            throw new TransformerException(
-                    "Invalid column separator type. Only supports enums in "
-                            + Transformer.ColumnSeparator.class.getName());
+            default -> throw new TransformerException("""
+                    Invalid column separator type. Only supports enums in %s"""
+                    .formatted(Transformer.ColumnSeparator.class.getName()));
         }
     }
 
     public String getRecordIdentifierValue() {
         return (String) get(transformer.getRecordIdentifierColumn());
     }
+    
+    /**
+     * Security: Validate column positions to prevent DoS attacks
+     */
+    private boolean isValidColumnPosition(Column col, int sourceLength) {
+        if (col == null) {
+            return false;
+        }
+        
+        int startColumn = col.startColumn();
+        int endColumn = col.endColumn();
+        
+        // Validate start column
+        if (startColumn < 1) {
+            return false;
+        }
+        
+        // Validate end column
+        if (endColumn < startColumn) {
+            return false;
+        }
+        
+        // Validate against source length
+        if (startColumn - 1 >= sourceLength) {
+            return false;
+        }
+        
+        if (endColumn > sourceLength) {
+            return false;
+        }
+        
+        // Prevent extremely large column ranges that could cause DoS
+        if (endColumn - startColumn > 10000) {
+            return false;
+        }
+        
+        return true;
+    }
 
     public Iterator<String> iterator() {
         return new CustomIterator();
     }
 
-    private Iterator getBaseIterator() {
+    private Iterator<String> getBaseIterator() {
         return super.iterator();
     }
 
     public String get(int pos) {
+        // Security: Validate position to prevent DoS attacks
+        if (pos < 1) {
+            throw new TransformerParseException("Invalid position: " + pos + ". Position must be >= 1");
+        }
+        
+        if (pos > size()) {
+            throw new TransformerParseException("Invalid position: " + pos + ". Maximum position is: " + size());
+        }
+        
         try {
             return super.get(pos - 1);
         } catch (IndexOutOfBoundsException ex) {
@@ -142,7 +200,7 @@ class TokenList extends LinkedList<String> {
     }
 
     private class CustomIterator implements TokenIterator {
-        private Iterator iter = getBaseIterator();
+        private Iterator<String> iter = getBaseIterator();
 
         public void remove() {
             iter.remove();
@@ -153,19 +211,19 @@ class TokenList extends LinkedList<String> {
         }
 
         public String next() {
-            return (String) iter.next();
+            return iter.next();
         }
 
         public int getInt() {
-            return Integer.parseInt((String) next());
+            return Integer.parseInt(next());
         }
 
         public long getLong() {
-            return Long.parseLong((String) next());
+            return Long.parseLong(next());
         }
 
         public String getString() {
-            return (String) next();
+            return next();
         }
     }
 }
