@@ -1,1 +1,7 @@
-/target/
+target/
+bin/
+.vscode/
+.settings/
+.classpath/
+.gitignore/
+.project/

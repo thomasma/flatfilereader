@@ -12,7 +12,7 @@ We will run through the first approach and at the end I will tell you what chang
 Let’s start by creating a java class that represents our record (assume our record has comma character separated columns).
 
 
-Approach#1 - DELIMITED COLUMN - You parse the file and each line to the parser.
+Approach#1 - DELIMITED COLUMN - You parse the file and provide each line to the parser.
 -------------------------------------------------------------------------------
 
     import org.aver.fft.annotations.Column;
@@ -84,7 +84,7 @@ By default the parser is setup to parse character delimited columns. We used the
     DelimitedBean bean = (DelimitedBean) spec.loadRecord(line);
 
 
-Approach#1 - FIXED COLUMN: You parse the file and each line to the parser.
+Approach#1 - FIXED COLUMN: You parse the file and provide each line to the parser.
 --------------------------------------------------------------------------
 Now lets see how you define the same for a fixed column record format. The parsing code above stays the same. The difference is in how you annotate your result bean class.
 
