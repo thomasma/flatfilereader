@@ -1,5 +1,6 @@
 ﻿User Guide - Flat File Reader
 =============================
+This project now targets **Java 21**. Ensure a Java 21 JDK is available when building or running the library.
 If your goal is to parse a simple flat file (with either character delimited columns or fixed length columns) then this library will be of interest to you. This is also ideal for large files where you want control of parsing the records line by line and definitely do not want the framework to load the entire file into a collection in memory.
 
 The framework supports two ways of parsing a file. 
