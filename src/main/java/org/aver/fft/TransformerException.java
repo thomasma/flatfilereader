@@ -18,19 +18,39 @@
 package org.aver.fft;
 
 /**
- * Indicates that an unrecoverable exception occured while transforming the file
+ * Indicates that an unrecoverable exception occurred while transforming the file
  * to java objects.
  * 
  * @author Mathew Thomas
  */
-@SuppressWarnings("serial")
 public class TransformerException extends RuntimeException {
+    
+    /**
+     * Constructs a new transformer exception with the specified detail message.
+     * 
+     * @param msg the detail message
+     */
     public TransformerException(String msg) {
         super(msg);
     }
 
-    public TransformerException(Exception ex) {
-        super(ex);
+    /**
+     * Constructs a new transformer exception with the specified cause.
+     * 
+     * @param cause the cause of the exception
+     */
+    public TransformerException(Exception cause) {
+        super(cause);
+    }
+    
+    /**
+     * Constructs a new transformer exception with the specified detail message and cause.
+     * 
+     * @param msg the detail message
+     * @param cause the cause of the exception
+     */
+    public TransformerException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 
 }

@@ -84,14 +84,25 @@ public final class FlatFileTransformer implements Transformer {
 
     private boolean skipFirstLine;
 
-    private final Class<Object> clazz;
+    private final Class<?> clazz;
 
     /**
      * Initialize the transformer.
      * 
-     * @param clazz
+     * @param clazz the target class for transformation
+     * @throws TransformerException if the class is invalid
      */
-    public FlatFileTransformer(final Class<Object> clazz) {
+    public FlatFileTransformer(final Class<?> clazz) {
+        // Security: Validate input class
+        if (clazz == null) {
+            throw new TransformerException("Target class cannot be null");
+        }
+        
+        // Security: Ensure class has proper annotations
+        if (!clazz.isAnnotationPresent(Transform.class)) {
+            throw new TransformerException("Class must be annotated with @Transform: " + clazz.getName());
+        }
+        
         this.clazz = clazz;
         loadClasses();
     }
@@ -121,34 +132,103 @@ public final class FlatFileTransformer implements Transformer {
     }
 
     /***/
+    /**
+     * Parses an InputStream and sends records to the listener.
+     * 
+     * @param stream the input stream to parse
+     * @param listener the listener to receive parsed records
+     * @throws TransformerException if input validation fails or parsing errors occur
+     */
     @Override
     public void parseFlatFile(final InputStream stream,
             final RecordListener listener) {
+        // Security: Validate inputs
         if (stream == null) {
-            throw new TransformerException(
-                    "Cannot read file. Invalid InputStream.");
+            throw new TransformerException("InputStream cannot be null");
+        }
+        
+        if (listener == null) {
+            throw new TransformerException("RecordListener cannot be null");
         }
 
-        parse(new BufferedReader(new InputStreamReader(stream)), listener);
+        try {
+            parse(new BufferedReader(new InputStreamReader(stream)), listener);
+        } catch (Exception e) {
+            throw new TransformerException("Error parsing input stream: " + e.getMessage(), e);
+        }
     }
 
-    /***/
+    /**
+     * Parses a file and sends records to the listener.
+     * 
+     * @param file the file to parse
+     * @param listener the listener to receive parsed records
+     * @throws TransformerException if input validation fails or file access errors occur
+     */
     @Override
     public void parseFlatFile(final File file, final RecordListener listener) {
-        if (file == null || !file.exists() || !file.canRead()
-                || file.isDirectory()) {
-            throw new TransformerException("Cannot read file " + file);
+        // Security: Comprehensive file validation
+        if (file == null) {
+            throw new TransformerException("File cannot be null");
         }
+        
+        if (listener == null) {
+            throw new TransformerException("RecordListener cannot be null");
+        }
+        
+        if (!file.exists()) {
+            throw new TransformerException("File does not exist: " + file.getAbsolutePath());
+        }
+        
+        if (!file.isFile()) {
+            throw new TransformerException("Path is not a regular file: " + file.getAbsolutePath());
+        }
+        
+        if (!file.canRead()) {
+            throw new TransformerException("File is not readable: " + file.getAbsolutePath());
+        }
+        
+        // Security: Prevent reading of extremely large files (DoS protection)
+        if (file.length() > 500_000_000) { // 500MB limit
+            throw new TransformerException("File too large (max 500MB): " + file.length() + " bytes");
+        }
+        
         try {
             parse(new BufferedReader(new FileReader(file)), listener);
         } catch (FileNotFoundException e) {
-            throw new TransformerException(e);
+            throw new TransformerException("File not found: " + file.getAbsolutePath(), e);
+        } catch (SecurityException e) {
+            throw new TransformerException("Security error accessing file: " + file.getAbsolutePath(), e);
+        } catch (Exception e) {
+            throw new TransformerException("Error parsing file: " + file.getAbsolutePath() + " - " + e.getMessage(), e);
         }
     }
 
-    /***/
+    /**
+     * Loads a record from a line of text into a Java object.
+     * 
+     * @param line the input line to parse
+     * @return the parsed object
+     * @throws TransformerException if parsing fails
+     * @throws TransformerParseException if the line format is invalid
+     */
     @Override
     public Object loadRecord(final String line) {
+        // Security: Comprehensive input validation
+        if (line == null) {
+            throw new TransformerException("Input line cannot be null");
+        }
+        
+        // Security: Prevent DoS attacks with extremely long lines
+        if (line.length() > 100000) { // 100KB limit
+            throw new TransformerException("Input line too long (max 100,000 characters): " + line.length());
+        }
+        
+        // Security: Validate class state
+        if (clazz == null) {
+            throw new TransformerException("Target class is not initialized");
+        }
+        
         Object dest = beanCreator.createBean(clazz.getName());
 
         Map<String, Object> map = new HashMap<>();
@@ -253,7 +333,9 @@ public final class FlatFileTransformer implements Transformer {
             String line = null;
             boolean continueReading = true;
             long lineCount = 0;
-            while ((line = reader.readLine()) != null) {
+            long maxLines = 1_000_000; // Security: Limit max lines to prevent DoS
+            
+            while ((line = reader.readLine()) != null && lineCount < maxLines) {
                 lineCount++;
 
                 if (skipFirstLine && lineCount == 1) {
@@ -266,13 +348,31 @@ public final class FlatFileTransformer implements Transformer {
                     break;
                 }
 
+                // Security: Additional line length validation
+                if (line.length() > 50000) { // 50KB per line limit
+                    LOGGER.warn("Skipping line {} due to excessive length: {} characters", lineCount, line.length());
+                    continueReading = listener.unresolvableRecord(line);
+                    continue;
+                }
+
                 // ok read on
                 try {
                     Object o = loadRecord(line);
                     continueReading = listener.foundRecord(o);
                 } catch (TransformerException e) {
+                    LOGGER.debug("Failed to parse line {}: {}", lineCount, e.getMessage());
                     continueReading = listener.unresolvableRecord(line);
+                } catch (OutOfMemoryError e) {
+                    // Security: Handle memory exhaustion gracefully
+                    throw new TransformerException("Out of memory while processing line " + lineCount + 
+                            ". Consider processing smaller files or increasing heap size.", e);
                 }
+            }
+            
+            // Security: Warn if max lines exceeded
+            if (lineCount >= maxLines) {
+                LOGGER.warn("File processing stopped at {} lines (maximum allowed). " + 
+                           "Remaining lines were not processed.", maxLines);
             }
         } catch (IOException e) {
             throw new TransformerException(e);

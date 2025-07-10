@@ -32,13 +32,12 @@ import org.aver.fft.TransformerParseException;
  * 
  * @author Mathew Thomas
  */
-@SuppressWarnings("serial")
 class TokenList extends LinkedList<String> {
     private String src;
 
     private FlatFileTransformer transformer;
 
-    private Class destClazz;
+    private Class<?> destClazz;
 
     /**
      * Tokenize the record given the transformer.
@@ -47,7 +46,7 @@ class TokenList extends LinkedList<String> {
      * @param transformer
      * @param clazz
      */
-    public TokenList(String src, FlatFileTransformer transformer, Class clazz) {
+    public TokenList(String src, FlatFileTransformer transformer, Class<?> clazz) {
         this.src = src;
         this.transformer = transformer;
         destClazz = clazz;

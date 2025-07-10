@@ -40,8 +40,13 @@ public class TransformerFactory {
      *            class annotated with @Transform annotation
      * @return transformer instance
      */
-    @SuppressWarnings("unchecked")
     public static Transformer getTransformer(final Class<?> clazz) {
-        return new FlatFileTransformer((Class<Object>) clazz);
+        // Type-safe approach: validate that the class is compatible
+        if (clazz == null) {
+            throw new TransformerException("Class cannot be null");
+        }
+        
+        // Create a type-safe transformer with proper validation
+        return new FlatFileTransformer(clazz);
     }
 }
